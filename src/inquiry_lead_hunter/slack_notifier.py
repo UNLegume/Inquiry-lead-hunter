@@ -10,6 +10,7 @@ CATEGORY_LABELS = {
     "quote_request": "💰 見積もり依頼",
     "interest": "👀 興味・関心",
     "question": "❓ 質問・問い合わせ",
+    "partnership": "🤝 パートナー提携・協業",
     "neutral": "📝 中立",
     "rejection": "❌ お断り",
 }

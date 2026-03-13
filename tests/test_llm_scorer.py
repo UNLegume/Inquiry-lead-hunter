@@ -125,7 +125,7 @@ class TestParseResponse:
         """有効なカテゴリがすべて受け入れられる"""
         valid_categories = [
             "meeting_request", "quote_request", "interest",
-            "question", "neutral", "rejection"
+            "question", "partnership", "neutral", "rejection"
         ]
         for cat in valid_categories:
             text = json.dumps({"score": 50, "category": cat, "reason": "test"})

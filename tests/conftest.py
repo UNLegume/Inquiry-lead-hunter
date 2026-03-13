@@ -65,6 +65,7 @@ def settings() -> dict:
         },
         "scoring": {
             "llm_threshold": 50,
+            "notification_threshold": 60,
         },
     }
 

@@ -8,7 +8,7 @@ from .models import ScoredEmail
 
 logger = logging.getLogger(__name__)
 
-MAX_BODY_LENGTH = 3000
+MAX_BODY_LENGTH = 5000
 
 
 def score_emails(scored_emails: list[ScoredEmail], config) -> list[ScoredEmail]:
@@ -49,8 +49,8 @@ def _score_single_email(client: Anthropic, scored_email: ScoredEmail, prompts: d
     )
 
     response = client.messages.create(
-        model="claude-haiku-4-5-20251001",
-        max_tokens=256,
+        model="claude-sonnet-4-6",
+        max_tokens=512,
         temperature=0.1,
         system=prompts["system"],
         messages=[{"role": "user", "content": user_message}],
@@ -84,7 +84,7 @@ def _parse_response(response_text: str) -> dict | None:
 
         valid_categories = {
             "meeting_request", "quote_request", "interest",
-            "question", "neutral", "rejection"
+            "question", "partnership", "neutral", "rejection"
         }
         category = data.get("category", "neutral")
         if category not in valid_categories:

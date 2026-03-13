@@ -2,7 +2,7 @@ import logging
 import sys
 
 from .config import load_config
-from .gmail_client import get_gmail_service, fetch_inquiry_emails, mark_as_processed
+from .gmail_client import get_gmail_service, fetch_inquiry_emails, mark_as_processed, mark_as_lead
 from .noise_filter import filter_noise
 from .keyword_filter import filter_by_keywords
 from .llm_scorer import score_emails
@@ -74,6 +74,9 @@ def run():
 
             # 8. Slack通知
             if scored:
+                lead_ids = [c.email.id for c in scored]
+                mark_as_lead(service, lead_ids, config.settings)
+                logger.info(f"{len(scored)}件にリードラベルを付与")
                 notify(scored, config.slack_webhook_url)
                 logger.info(f"{len(scored)}件のリードをSlack通知")
 

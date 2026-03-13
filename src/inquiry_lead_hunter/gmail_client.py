@@ -112,6 +112,34 @@ def _extract_body(payload: dict) -> str:
     return ""
 
 
+def mark_as_lead(service, email_ids: list[str], settings: dict) -> None:
+    """メールに「リード」ラベルを付与"""
+    label_lead = settings["gmail"]["label_lead"]
+
+    lead_label_id = _get_label_id(service, label_lead)
+    if not lead_label_id:
+        # ラベルが存在しない場合は作成
+        label_body = {
+            "name": label_lead,
+            "labelListVisibility": "labelShow",
+            "messageListVisibility": "show",
+        }
+        created = service.users().labels().create(userId="me", body=label_body).execute()
+        lead_label_id = created["id"]
+        logger.info(f"ラベル '{label_lead}' を作成しました")
+
+    for email_id in email_ids:
+        try:
+            service.users().messages().modify(
+                userId="me",
+                id=email_id,
+                body={"addLabelIds": [lead_label_id]},
+            ).execute()
+            logger.debug(f"メール {email_id} にリードラベルを付与")
+        except Exception as e:
+            logger.error(f"ラベル付与に失敗 (メール: {email_id}): {e}")
+
+
 def mark_as_processed(service, email_ids: list[str], settings: dict) -> None:
     """メールに「処理済」ラベルを付与"""
     label_processed = settings["gmail"]["label_processed"]
