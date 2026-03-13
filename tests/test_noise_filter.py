@@ -172,7 +172,7 @@ class TestFilterNoise:
             thread_id="t-ac-single",
             sender="info@company.co.jp",
             subject="お問い合わせについて",
-            body="担当者より折り返しご連絡いたします。よろしくお願いいたします。",
+            body="折り返しご連絡をお待ちください。よろしくお願いいたします。",
             received_at="2026-03-13T00:00:00Z",
         )
         result = filter_noise([email], settings["noise_filter"])
@@ -197,10 +197,7 @@ class TestFilterNoise:
             thread_id="t-ac-threshold",
             sender="info@company.co.jp",
             subject="お問い合わせありがとうございます",
-            body=(
-                "以下の内容で受け付けいたしました。\n"
-                "担当者より折り返しご連絡いたします。\n"
-            ),
+            body="お問い合わせありがとうございます。折り返しご連絡いたします。",
             received_at="2026-03-13T00:00:00Z",
         )
         result = filter_noise([email], custom_settings)
