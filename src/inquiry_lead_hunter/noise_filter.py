@@ -1,7 +1,7 @@
 """Noise filter: removes auto-replies, newsletters, and bounce messages."""
 
 import logging
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, Optional
 
 if TYPE_CHECKING:
     from inquiry_lead_hunter.models import Email
@@ -22,6 +22,8 @@ def filter_noise(emails: list, settings: dict) -> list:
     auto_reply_patterns: list[str] = settings.get("auto_reply_patterns", [])
     newsletter_patterns: list[str] = settings.get("newsletter_patterns", [])
     bounce_patterns: list[str] = settings.get("bounce_patterns", [])
+    auto_confirm_body_patterns: list[str] = settings.get("auto_confirm_body_patterns", [])
+    auto_confirm_min_matches: int = settings.get("auto_confirm_min_matches", 0)
 
     filtered: list = []
 
@@ -31,6 +33,8 @@ def filter_noise(emails: list, settings: dict) -> list:
             auto_reply_patterns,
             newsletter_patterns,
             bounce_patterns,
+            auto_confirm_body_patterns,
+            auto_confirm_min_matches,
         )
 
         if reason is not None:
@@ -51,7 +55,9 @@ def _classify_noise(
     auto_reply_patterns: list[str],
     newsletter_patterns: list[str],
     bounce_patterns: list[str],
-) -> str | None:
+    auto_confirm_body_patterns: list[str],
+    auto_confirm_min_matches: int,
+) -> Optional[str]:
     """Return a reason string if the email is noise, otherwise None."""
     sender_lower = email.sender.lower()
     subject_lower = email.subject.lower()
@@ -74,5 +80,14 @@ def _classify_noise(
         p = pattern.lower()
         if p in subject_lower:
             return f"bounce (pattern={pattern!r})"
+
+    # 4. Auto-confirm: body matches multiple auto_confirm patterns
+    if auto_confirm_body_patterns and auto_confirm_min_matches > 0:
+        match_count = sum(
+            1 for pattern in auto_confirm_body_patterns
+            if pattern.lower() in body_lower
+        )
+        if match_count >= auto_confirm_min_matches:
+            return f"auto_confirm (matched {match_count} patterns)"
 
     return None

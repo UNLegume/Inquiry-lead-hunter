@@ -155,3 +155,53 @@ class TestFilterNoise:
         )
         result = filter_noise([normal_email, email2], settings["noise_filter"])
         assert len(result) == 2
+
+    # ------------------------------------------------------------------
+    # 9. Auto-confirm emails are excluded
+    # ------------------------------------------------------------------
+
+    def test_auto_confirm_email_excluded(self, auto_confirm_email, settings):
+        """受付確認メール（パターン2つ以上一致）は除外される。"""
+        result = filter_noise([auto_confirm_email], settings["noise_filter"])
+        assert result == []
+
+    def test_auto_confirm_single_match_passes(self, settings):
+        """パターンが1つだけ一致する場合は除外されない。"""
+        email = Email(
+            id="ac-single",
+            thread_id="t-ac-single",
+            sender="info@company.co.jp",
+            subject="お問い合わせについて",
+            body="担当者より折り返しご連絡いたします。よろしくお願いいたします。",
+            received_at="2026-03-13T00:00:00Z",
+        )
+        result = filter_noise([email], settings["noise_filter"])
+        assert len(result) == 1
+
+    def test_human_reply_with_thanks_subject_passes(
+        self, human_reply_with_thanks_subject, settings
+    ):
+        """件名に「ありがとう」を含むが人間の返信は通過する。"""
+        result = filter_noise(
+            [human_reply_with_thanks_subject], settings["noise_filter"]
+        )
+        assert len(result) == 1
+        assert result[0].id == "email-012"
+
+    def test_auto_confirm_min_matches_respected(self, settings):
+        """min_matches の値が正しく効く（3に変更するとパターン2つでは通過）。"""
+        custom_settings = dict(settings["noise_filter"])
+        custom_settings["auto_confirm_min_matches"] = 3
+        email = Email(
+            id="ac-threshold",
+            thread_id="t-ac-threshold",
+            sender="info@company.co.jp",
+            subject="お問い合わせありがとうございます",
+            body=(
+                "以下の内容で受け付けいたしました。\n"
+                "担当者より折り返しご連絡いたします。\n"
+            ),
+            received_at="2026-03-13T00:00:00Z",
+        )
+        result = filter_noise([email], custom_settings)
+        assert len(result) == 1

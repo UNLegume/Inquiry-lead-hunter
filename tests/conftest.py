@@ -34,6 +34,25 @@ def settings() -> dict:
                 "undeliverable",
                 "mailer-daemon",
             ],
+            "auto_confirm_body_patterns": [
+                "このメールは自動",
+                "担当者より折り返し",
+                "担当者よりご連絡",
+                "担当より改めて",
+                "改めてご連絡",
+                "後ほどご連絡",
+                "このメールに心当たりがない",
+                "このメールは送信専用",
+                "送信専用のメールアドレス",
+                "このメールに返信しないで",
+                "このメールへの返信はできません",
+                "受付番号",
+                "お問い合わせ内容の確認",
+                "以下の内容で受け付け",
+                "以下の内容でお問い合わせ",
+                "お問い合わせフォーム",
+            ],
+            "auto_confirm_min_matches": 2,
         },
         "keyword_filter": {
             "high_keywords": [
@@ -210,6 +229,45 @@ def bounce_email() -> Email:
         subject="Mail Delivery Failure: your message to foo@bar.com",
         body="Your message could not be delivered.",
         received_at="2026-03-13T06:00:00Z",
+        labels=["INBOX"],
+    )
+
+
+@pytest.fixture()
+def auto_confirm_email() -> Email:
+    """受付確認メール（定型フレーズ3つ）— ノイズとして除外されるべき。"""
+    return Email(
+        id="email-011",
+        thread_id="thread-011",
+        sender="info@some-company.co.jp",
+        subject="お問い合わせありがとうございます",
+        body=(
+            "お問い合わせいただきありがとうございます。\n"
+            "以下の内容で受け付けいたしました。\n\n"
+            "担当者より折り返しご連絡いたしますので、しばらくお待ちください。\n"
+            "このメールは自動配信されています。\n"
+        ),
+        received_at="2026-03-13T09:30:00Z",
+        labels=["INBOX"],
+    )
+
+
+@pytest.fixture()
+def human_reply_with_thanks_subject() -> Email:
+    """件名に「ありがとうございます」を含むが人間の返信 — 通過すべき。"""
+    return Email(
+        id="email-012",
+        thread_id="thread-012",
+        sender="sato@sakuya.co.jp",
+        subject="★お問合わせありがとうございます【サクヤ佐藤】★",
+        body=(
+            "お問い合わせいただきありがとうございます。\n"
+            "ぜひ一度お打ち合わせさせてください。\n\n"
+            "以下の日程でご都合いかがでしょうか。\n"
+            "・3/18（火）14:00〜\n"
+            "・3/19（水）10:00〜\n"
+        ),
+        received_at="2026-03-13T10:30:00Z",
         labels=["INBOX"],
     )
 
