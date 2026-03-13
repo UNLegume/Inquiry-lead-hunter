@@ -1,0 +1,63 @@
+gmail:
+  label_inquiry: "_filtered/processed"
+  label_processed: "処理済"
+  max_results: 50
+
+noise_filter:
+  auto_reply_patterns:
+    - "自動返信"
+    - "自動応答"
+    - "auto-reply"
+    - "automatic reply"
+    - "out of office"
+    - "不在"
+    - "noreply"
+    - "no-reply"
+    - "mailer-daemon"
+  newsletter_patterns:
+    - "配信停止"
+    - "unsubscribe"
+    - "メールマガジン"
+    - "ニュースレター"
+  bounce_patterns:
+    - "delivery failed"
+    - "delivery status"
+    - "undeliverable"
+    - "配信エラー"
+
+keyword_filter:
+  positive_keywords:
+    high:
+      - "打ち合わせ"
+      - "ミーティング"
+      - "商談"
+      - "見積"
+      - "お見積り"
+      - "導入"
+      - "検討"
+      - "ご相談"
+      - "詳しく"
+      - "資料"
+      - "デモ"
+      - "トライアル"
+    medium:
+      - "興味"
+      - "関心"
+      - "質問"
+      - "教えて"
+      - "可能でしょうか"
+      - "費用"
+      - "料金"
+      - "プラン"
+  negative_keywords:
+    - "営業お断り"
+    - "不要"
+    - "結構です"
+    - "必要ありません"
+
+scoring:
+  llm_threshold: 50
+  notification_threshold: 60
+  keyword_weights:
+    high: 30
+    medium: 15
