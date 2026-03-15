@@ -1,5 +1,6 @@
 import logging
 import base64
+from typing import Optional
 from googleapiclient.discovery import build
 from google.oauth2 import service_account
 
@@ -19,7 +20,7 @@ def get_gmail_service(credentials_path: str, delegated_user: str):
     return build("gmail", "v1", credentials=delegated_credentials)
 
 
-def _get_label_id(service, label_name: str) -> str | None:
+def _get_label_id(service, label_name: str) -> Optional[str]:
     """ラベル名からラベルIDを取得"""
     results = service.users().labels().list(userId="me").execute()
     for label in results.get("labels", []):
@@ -39,13 +40,12 @@ def fetch_inquiry_emails(service, settings: dict) -> list[Email]:
         logger.warning(f"ラベル '{label_inquiry}' が見つかりません")
         return []
 
-    processed_label_id = _get_label_id(service, label_processed)
-
-    # 問い合わせラベル付きメールを取得
+    # 問い合わせラベル付き & 処理済ラベルなしのメールをAPI側で絞り込み
     query_params = {
         "userId": "me",
         "labelIds": [inquiry_label_id],
         "maxResults": max_results,
+        "q": f'-label:"{label_processed}"',
     }
 
     results = service.users().messages().list(**query_params).execute()
@@ -57,11 +57,6 @@ def fetch_inquiry_emails(service, settings: dict) -> list[Email]:
             userId="me", id=msg_ref["id"], format="full"
         ).execute()
 
-        # 処理済ラベルがついていたらスキップ
-        msg_labels = msg.get("labelIds", [])
-        if processed_label_id and processed_label_id in msg_labels:
-            continue
-
         email = _parse_message(msg)
         if email:
             emails.append(email)
@@ -70,7 +65,7 @@ def fetch_inquiry_emails(service, settings: dict) -> list[Email]:
     return emails
 
 
-def _parse_message(msg: dict) -> Email | None:
+def _parse_message(msg: dict) -> Optional[Email]:
     """Gmail APIのメッセージをEmailデータクラスに変換"""
     try:
         headers = {h["name"].lower(): h["value"] for h in msg["payload"]["headers"]}
