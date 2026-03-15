@@ -1,5 +1,6 @@
 import json
 import logging
+from typing import Optional
 from anthropic import Anthropic
 from tenacity import retry, stop_after_attempt, wait_exponential, retry_if_exception_type
 from anthropic import APIError, RateLimitError
@@ -67,7 +68,7 @@ def _score_single_email(client: Anthropic, scored_email: ScoredEmail, prompts: d
     return scored_email
 
 
-def _parse_response(response_text: str) -> dict | None:
+def _parse_response(response_text: str) -> Optional[dict]:
     """Claude APIのレスポンスからJSONをパース"""
     try:
         # JSONブロックを抽出（```json ... ``` でラップされている場合も対応）

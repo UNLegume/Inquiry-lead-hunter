@@ -86,6 +86,7 @@ keyword_filter:
     - "人材"
     - "要員"
     - "ご紹介"
+    - "お話を伺い"
   medium_keywords:
     - "興味"
     - "関心"
@@ -97,6 +98,8 @@ keyword_filter:
     - "プラン"
     - "情報交換"
     - "ご提案"
+    - "日程"
+    - "ご都合"
   negative_keywords:
     - "営業お断り"
     - "不要"
