@@ -28,9 +28,11 @@ jobs:
         run: pip install .
 
       - name: Write Gmail credentials
+        env:
+          GMAIL_CREDENTIALS_JSON: ${{ secrets.GMAIL_CREDENTIALS_JSON }}
         run: |
           mkdir -p credentials
-          echo "${{ secrets.GMAIL_CREDENTIALS_JSON }}" > credentials/service_account.json
+          printenv GMAIL_CREDENTIALS_JSON > credentials/service_account.json
 
       - name: Run lead hunter
         run: inquiry-lead-hunter
