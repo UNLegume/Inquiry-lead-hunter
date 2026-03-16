@@ -202,3 +202,74 @@ class TestFilterNoise:
         )
         result = filter_noise([email], custom_settings)
         assert len(result) == 1
+
+    # ------------------------------------------------------------------
+    # 10. Self-company sender emails are excluded
+    # ------------------------------------------------------------------
+
+    def test_self_company_sender_excluded(self, self_sent_outbound_email, settings):
+        """finn.co.jpドメインからのメールが除外される。"""
+        result = filter_noise([self_sent_outbound_email], settings["noise_filter"])
+        assert result == []
+
+    def test_self_company_sender_display_name_excluded(self, settings):
+        """Display name形式のfinn.co.jpメールも除外される。"""
+        email = Email(
+            id="self-display",
+            thread_id="t-self-display",
+            sender="久野太郎 <kuno@finn.co.jp>",
+            subject="SESパートナー提携のご提案",
+            body="突然のご連絡失礼いたします。",
+            received_at="2026-03-13T00:00:00Z",
+        )
+        result = filter_noise([email], settings["noise_filter"])
+        assert result == []
+
+    # ------------------------------------------------------------------
+    # 11. Self-company body echoback emails are excluded
+    # ------------------------------------------------------------------
+
+    def test_self_company_body_echoback_excluded(
+        self, self_sent_echoback_email, settings
+    ):
+        """本文に自社情報を含むエコーバックが除外される。"""
+        result = filter_noise([self_sent_echoback_email], settings["noise_filter"])
+        assert result == []
+
+    def test_self_company_body_no_match_passes(self, settings):
+        """自社情報を含まないメールは通過する。"""
+        email = Email(
+            id="no-self",
+            thread_id="t-no-self",
+            sender="info@other-company.co.jp",
+            subject="お問い合わせ",
+            body="弊社サービスについてご案内いたします。",
+            received_at="2026-03-13T00:00:00Z",
+        )
+        result = filter_noise([email], settings["noise_filter"])
+        assert len(result) == 1
+
+    # ------------------------------------------------------------------
+    # 12. Empty self_company config doesn't break
+    # ------------------------------------------------------------------
+
+    def test_self_company_empty_config_passes(self, normal_email, settings):
+        """self_company設定なしでもエラーにならない。"""
+        no_self_settings = dict(settings["noise_filter"])
+        no_self_settings.pop("self_company", None)
+        result = filter_noise([normal_email], no_self_settings)
+        assert len(result) == 1
+
+    # ------------------------------------------------------------------
+    # 13. New partnership proposals pass through (regression)
+    # ------------------------------------------------------------------
+
+    def test_new_partnership_not_excluded(
+        self, new_partnership_proposal_email, settings
+    ):
+        """新規協業提案メールは除外されずに通過する。"""
+        result = filter_noise(
+            [new_partnership_proposal_email], settings["noise_filter"]
+        )
+        assert len(result) == 1
+        assert result[0].id == "email-new-partner"

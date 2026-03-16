@@ -70,6 +70,10 @@ def settings() -> dict:
                 "受付番号",
             ],
             "auto_confirm_min_matches": 2,
+            "self_company": {
+                "sender_domains": ["finn.co.jp"],
+                "body_identity_patterns": ["株式会社finn", "service@finn.co.jp"],
+            },
         },
         "keyword_filter": {
             "high_keywords": [
@@ -298,3 +302,60 @@ def mixed_email_list(
 ) -> list:
     """A list containing one clean email and three noisy emails."""
     return [normal_email, auto_reply_subject_email, newsletter_email, bounce_email]
+
+
+@pytest.fixture()
+def self_sent_echoback_email() -> Email:
+    """自社フォーム送信のエコーバック — Fromは他社だが本文に自社情報あり。"""
+    return Email(
+        id="email-self-echo",
+        thread_id="thread-self-echo",
+        sender="info@other-company.co.jp",
+        subject="お問い合わせありがとうございます",
+        body=(
+            "お問い合わせいただきありがとうございます。\n"
+            "以下の内容でお問い合わせを受け付けました。\n\n"
+            "会社名: 株式会社finn\n"
+            "メール: service@finn.co.jp\n"
+            "内容: SESパートナー提携のご提案\n"
+        ),
+        received_at="2026-03-13T11:00:00Z",
+        labels=["INBOX"],
+    )
+
+
+@pytest.fixture()
+def self_sent_outbound_email() -> Email:
+    """finn社員からクライアントへの送信メール。"""
+    return Email(
+        id="email-self-outbound",
+        thread_id="thread-self-outbound",
+        sender="kuno@finn.co.jp",
+        subject="SESパートナー提携のご提案",
+        body=(
+            "突然のご連絡失礼いたします。\n"
+            "株式会社finnの久野と申します。\n"
+            "SESパートナー提携についてご提案させていただきたく...\n"
+        ),
+        received_at="2026-03-13T11:30:00Z",
+        labels=["INBOX"],
+    )
+
+
+@pytest.fixture()
+def new_partnership_proposal_email() -> Email:
+    """外部企業からの新規協業提案 — リードとして通過すべき。"""
+    return Email(
+        id="email-new-partner",
+        thread_id="thread-new-partner",
+        sender="tanaka@external-corp.co.jp",
+        subject="協業のご提案",
+        body=(
+            "初めてご連絡いたします。\n"
+            "株式会社エクスターナルの田中と申します。\n"
+            "貴社のSES事業について拝見し、ぜひ協業させていただきたくご連絡いたしました。\n"
+            "一度お打ち合わせの機会をいただけますと幸いです。\n"
+        ),
+        received_at="2026-03-13T12:00:00Z",
+        labels=["INBOX"],
+    )

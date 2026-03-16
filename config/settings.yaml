@@ -65,6 +65,12 @@ noise_filter:
     - "お問い合わせフォーム"
     - "受付番号"
   auto_confirm_min_matches: 2
+  self_company:
+    sender_domains:
+      - "finn.co.jp"
+    body_identity_patterns:
+      - "株式会社finn"
+      - "service@finn.co.jp"
 
 keyword_filter:
   high_keywords:

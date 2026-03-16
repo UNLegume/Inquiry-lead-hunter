@@ -1,12 +1,28 @@
 """Noise filter: removes auto-replies, newsletters, and bounce messages."""
 
 import logging
+import re
 from typing import TYPE_CHECKING, Optional
 
 if TYPE_CHECKING:
     from inquiry_lead_hunter.models import Email
 
 logger = logging.getLogger(__name__)
+
+
+def _extract_sender_domain(sender: str) -> str:
+    """Extract the domain part from an email sender string.
+
+    Handles both plain ``user@domain.com`` and display-name format
+    ``"Name <user@domain.com>"``.  Returns an empty string if no domain
+    can be found.
+    """
+    match = re.search(r"<[^>]*@([^>]+)>", sender)
+    if not match:
+        match = re.search(r"@([\w.\-]+)", sender)
+    if match:
+        return match.group(1).lower()
+    return ""
 
 
 def filter_noise(emails: list, settings: dict) -> list:
@@ -24,6 +40,9 @@ def filter_noise(emails: list, settings: dict) -> list:
     bounce_patterns: list[str] = settings.get("bounce_patterns", [])
     auto_confirm_body_patterns: list[str] = settings.get("auto_confirm_body_patterns", [])
     auto_confirm_min_matches: int = settings.get("auto_confirm_min_matches", 0)
+    self_company: dict = settings.get("self_company", {})
+    sender_domains: list[str] = self_company.get("sender_domains", [])
+    body_identity_patterns: list[str] = self_company.get("body_identity_patterns", [])
 
     filtered: list = []
 
@@ -35,6 +54,8 @@ def filter_noise(emails: list, settings: dict) -> list:
             bounce_patterns,
             auto_confirm_body_patterns,
             auto_confirm_min_matches,
+            sender_domains,
+            body_identity_patterns,
         )
 
         if reason is not None:
@@ -57,11 +78,24 @@ def _classify_noise(
     bounce_patterns: list[str],
     auto_confirm_body_patterns: list[str],
     auto_confirm_min_matches: int,
+    sender_domains: list[str] = [],
+    body_identity_patterns: list[str] = [],
 ) -> Optional[str]:
     """Return a reason string if the email is noise, otherwise None."""
     sender_lower = email.sender.lower()
     subject_lower = email.subject.lower()
     body_lower = email.body.lower()
+
+    # 0a. Self-company sender: domain matches sender_domains
+    sender_domain = _extract_sender_domain(email.sender)
+    for domain in sender_domains:
+        if sender_domain == domain.lower():
+            return f"self_company_sender (domain={domain!r})"
+
+    # 0b. Self-company body: body contains identity patterns
+    for pattern in body_identity_patterns:
+        if pattern.lower() in body_lower:
+            return f"self_company_body (pattern={pattern!r})"
 
     # 1. Auto-reply: sender or subject matches any auto_reply_pattern
     for pattern in auto_reply_patterns:
