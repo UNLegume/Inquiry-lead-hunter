@@ -42,6 +42,33 @@ def notify(scored_emails: list[ScoredEmail], webhook_url: str) -> None:
         logger.error(f"Slack通知に失敗: {e}")
 
 
+def notify_no_leads(total_processed: int, webhook_url: str) -> None:
+    payload = {
+        "blocks": [
+            {
+                "type": "header",
+                "text": {
+                    "type": "plain_text",
+                    "text": "✅ リード検知なし",
+                },
+            },
+            {
+                "type": "section",
+                "text": {
+                    "type": "mrkdwn",
+                    "text": f"処理メール: {total_processed}件 — 該当するリードはありませんでした。",
+                },
+            },
+        ]
+    }
+    try:
+        response = requests.post(webhook_url, json=payload, timeout=10)
+        response.raise_for_status()
+        logger.info("リード検知なし通知を送信")
+    except requests.RequestException as e:
+        logger.error(f"リード検知なし通知の送信に失敗: {e}")
+
+
 def notify_error(message: str, webhook_url: str) -> None:
     """エラー通知をSlackに送信"""
     payload = {

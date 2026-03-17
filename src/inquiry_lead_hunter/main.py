@@ -6,7 +6,7 @@ from .gmail_client import get_gmail_service, fetch_inquiry_emails, mark_as_proce
 from .noise_filter import filter_noise
 from .keyword_filter import filter_by_keywords
 from .llm_scorer import score_emails
-from .slack_notifier import notify, notify_error
+from .slack_notifier import notify, notify_no_leads, notify_error
 
 logger = logging.getLogger(__name__)
 
@@ -89,6 +89,9 @@ def run():
                 break
 
         logger.info(f"Inquiry Lead Hunter 完了 — 合計処理: {total_processed}件, リード検知: {total_leads}件")
+
+        if total_leads == 0:
+            notify_no_leads(total_processed, config.slack_webhook_url)
 
     except Exception as e:
         logger.exception(f"致命的エラー: {e}")
