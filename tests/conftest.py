@@ -359,3 +359,56 @@ def new_partnership_proposal_email() -> Email:
         received_at="2026-03-13T12:00:00Z",
         labels=["INBOX"],
     )
+
+
+@pytest.fixture()
+def reply_email_with_quoted_self_company() -> Email:
+    """返信メール：引用部に自社情報を含むが、新規部分はリード — 通過すべき。"""
+    return Email(
+        id="email-reply-quoted-self",
+        thread_id="thread-reply-quoted-self",
+        sender="yamada@solution-hack.co.jp",
+        subject="Re: SESパートナー提携のご提案",
+        body=(
+            "株式会社finn\n"
+            "永田様\n\n"
+            "お世話になっております。\n"
+            "ソリューションハックの山田でございます。\n\n"
+            "ご連絡ありがとうございます。\n"
+            "ぜひ一度お打ち合わせさせてください。\n\n"
+            "以下の日程でご都合いかがでしょうか。\n"
+            "・3/18（火）14:00〜\n"
+            "・3/19（水）10:00〜\n\n"
+            "2026年3月15日(土) 10:30 service@finn.co.jp:\n"
+            "> 突然のご連絡失礼いたします。\n"
+            "> 株式会社finnでCPOを務めております永田と申します。\n"
+            "> SESパートナー提携についてご提案させていただきたく...\n"
+            "> お問い合わせフォームよりご連絡いたしました。\n"
+            "> 折り返しご連絡いただけますと幸いです。\n"
+            "> 送信されました内容をご確認ください。\n"
+        ),
+        received_at="2026-03-15T14:00:00Z",
+        labels=["INBOX"],
+    )
+
+
+@pytest.fixture()
+def reply_email_with_auto_confirm_in_quote() -> Email:
+    """返信メール：引用部にauto_confirmパターンを含むが通過すべき。"""
+    return Email(
+        id="email-reply-ac-quote",
+        thread_id="thread-reply-ac-quote",
+        sender="suzuki@partner.co.jp",
+        subject="Re: お問い合わせありがとうございます",
+        body=(
+            "永田様\n\n"
+            "ご連絡ありがとうございます。\n"
+            "詳細をお伺いしたいので、お電話でもよろしいでしょうか。\n\n"
+            "--- Original Message ---\n"
+            "お問い合わせを承りました。\n"
+            "担当者より折り返しご連絡いたします。\n"
+            "このメールは自動送信されています。\n"
+        ),
+        received_at="2026-03-15T15:00:00Z",
+        labels=["INBOX"],
+    )
