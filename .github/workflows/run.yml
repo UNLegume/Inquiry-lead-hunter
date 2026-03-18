@@ -1,8 +1,6 @@
 name: Run Lead Hunter
 
 on:
-  schedule:
-    - cron: '0 0,5,10,15 * * *'
   workflow_dispatch:
 
 jobs:
